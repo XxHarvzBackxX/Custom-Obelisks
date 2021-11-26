@@ -6,4 +6,4 @@ Via content packs, you can now create your own warp obelisks! Be that to a vanil
 [Mod Page](https://www.nexusmods.com/stardewvalley/mods/10202)
 [Content Pack Guide](Content-Pack-Guide.md)
 
-![Banner]()
+![Banner](https://github.com/XxHarvzBackxX/Custom-Obelisks/blob/main/misc/banner.png?raw=true)
