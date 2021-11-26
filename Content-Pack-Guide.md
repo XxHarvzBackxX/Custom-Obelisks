@@ -5,6 +5,7 @@ This document helps mod authors create a content pack for Custom Obelisks.
 
 # Content Packs
 
+
 ## CP Element
 This framework works in harmony with Content Patcher; you'll need to load your assets through a \[CP] pack. Example:
 ```js
@@ -30,6 +31,8 @@ This framework works in harmony with Content Patcher; you'll need to load your a
 ```
 For more info on Content Patcher, see [the documentation](https://github.com/Pathoschild/StardewMods/blob/develop/ContentPatcher/docs/author-guide.md) for it.
 For info on the data entries in `Data/Blueprints`, see [the page on it in the Stardew Wiki](https://stardewvalleywiki.com/Modding:Blueprint_data).
+### Assets
+The obelisk image file must be 48x128 pixels. If the image resolution does not match this (without loading it specially through external tools like [PyTK](https://gist.github.com/hatrat/6339a7975ae5d13802488d88a8b10a64#scaleup)), it could cause a crash.
 
 ## How-to
 In your `manifest.json` file, specify that this is a content pack for CO by placing CO's unique ID inside the `ContentPackFor` field (`harvz.CustomObelisks`).
