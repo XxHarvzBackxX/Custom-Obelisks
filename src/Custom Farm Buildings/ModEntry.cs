@@ -9,13 +9,16 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Menus;
 using System.Reflection;
+using Object = StardewValley.Object;
+using Microsoft.Xna.Framework;
 
 /// <summary>The mod entry point.</summary>
 public class ModEntry : Mod
 {
     internal static ModEntry Instance { get; private set; }
     internal static Harmony harmonye { get; private set; }
-    private static List<ModData> Data { get; set; } = new List<ModData> { new ModData(new Obelisk[] { }) };
+	internal static JAAPI JAAPIInstance { get; set; } 
+    private static List<ModData> Data { get; set; } = new List<ModData> { new ModData(new Obelisk[] { }, new Totem[] { }) };
 	internal static IMonitor Monitor1;
 
     /// <summary>The mod entry point, called after the mod is first loaded.</summary>
@@ -30,13 +33,17 @@ public class ModEntry : Mod
 			   original: AccessTools.Method(typeof(Building), "obeliskWarpForReal"),
 			   prefix: new HarmonyMethod(typeof(ModEntry), nameof(ModEntry.Building_obeliskWarpForReal_Prefix))
 			);
-        foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
+		harmony.Patch(
+		   original: AccessTools.Method(typeof(Object), "totemWarpForReal"),
+		   prefix: new HarmonyMethod(typeof(ModEntry), nameof(ModEntry.Object_totemWarpForReal_Prefix))
+		);
+		foreach (IContentPack contentPack in this.Helper.ContentPacks.GetOwned())
         {
             this.Monitor.Log($"Reading content pack: {contentPack.Manifest.Name} {contentPack.Manifest.Version} from {contentPack.DirectoryPath}");
             if (!contentPack.HasFile("content.json"))
             {
                 Monitor.Log($"{contentPack.Manifest.Name} {contentPack.Manifest.Version} is missing a \"content.json\" file.", LogLevel.Error);
-                contentPack.WriteJsonFile("content.json", new ModData(new Obelisk[] { new Obelisk() }));
+                contentPack.WriteJsonFile("content.json", new ModData(new Obelisk[] { new Obelisk() }, new Totem[] { new Totem() }));
             }
             else
             {
@@ -47,8 +54,49 @@ public class ModEntry : Mod
 		helper.Events.GameLoop.Saved += OnSaved;
 		helper.Events.GameLoop.Saving += OnSaving;
 		helper.Events.Display.MenuChanged += OnMenuChanged;
+        helper.Events.GameLoop.GameLaunched += GameLoop_GameLaunched;
+        helper.Events.Input.ButtonsChanged += Input_ButtonsChanged;
 	}
-	private static void OnMenuChanged(object sender, MenuChangedEventArgs e)
+
+    private void Input_ButtonsChanged(object sender, ButtonsChangedEventArgs e)
+    {
+		foreach (SButton button in e.Pressed)
+		{
+			if (button == SButton.MouseRight)
+			{
+				foreach (ModData m in Data)
+				{
+					foreach (Totem t in m.Totems)
+					{
+						if (Game1.player.ActiveObject?.ParentSheetIndex == JAAPIInstance.GetObjectId(t.Name))
+                        {
+							Object o = Game1.player.ActiveObject;
+							try
+							{
+								Helper.Reflection.GetMethod(o, "totemWarp", true).Invoke(Game1.player);
+							}
+                            catch (Exception ex)
+                            {
+								Monitor1.Log($"Failed in {nameof(Input_ButtonsChanged)} while trying to invoke method 'Object.totemWarp':\n{ex}",
+						LogLevel.Error);
+								Monitor1.Log(ex.StackTrace, LogLevel.Trace);
+							}
+						}
+					}
+				}
+			}
+		}
+    }
+
+    private void GameLoop_GameLaunched(object sender, GameLaunchedEventArgs e)
+    {
+		if (Helper.ModRegistry.GetApi<JAAPI>("spacechase0.JsonAssets") != null)
+		{
+			JAAPIInstance = Helper.ModRegistry.GetApi<JAAPI>("spacechase0.JsonAssets");
+		}
+    }
+
+    private static void OnMenuChanged(object sender, MenuChangedEventArgs e)
 	{
 		UpdateMenu(e.NewMenu);
 		Monitor1.Log($"OnMenuChanged called.");
@@ -89,6 +137,37 @@ public class ModEntry : Mod
         }
 		return true;
 	}
+	private static bool Object_totemWarpForReal_Prefix(Object __instance)
+	{
+		foreach (ModData m in Data)
+		{
+			foreach (Totem t in m.Totems)
+			{
+				try
+				{
+					if (t.Name != "???")
+					{
+						if (__instance.ParentSheetIndex == JAAPIInstance.GetObjectId(t.Name))
+						{
+							Game1.warpFarmer(t.WhereToWarp, t.ToX, t.ToY, flip: false);
+							if (!t.PersistItem)
+							{
+								Game1.player.ActiveObject = null;
+							}
+							return true;
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					Monitor1.Log($"Failed in {nameof(Building_obeliskWarpForReal_Prefix)}:\n{e}",
+						LogLevel.Error);
+					Monitor1.Log(e.StackTrace, LogLevel.Trace);
+				}
+			}
+		}
+		return true;
+	}
 	// Add the obelisk to the Wizard's construction menu.
 	public static void UpdateMenu(IClickableMenu menu)
 	{
@@ -97,7 +176,7 @@ public class ModEntry : Mod
 		{
 			foreach (Obelisk o in m.Obelisks)
 			{
-				if (menu is CarpenterMenu cMenu && IsContentPresent(o))
+				if (menu is CarpenterMenu cMenu && IsContentPresent(o) && o.Name != "???")
 				{
 					if (Instance.Helper.Reflection.GetField<bool>(cMenu, "magicalConstruction").GetValue())
 					{
@@ -180,10 +259,43 @@ public class ModEntry : Mod
 	public class ModData
 	{
 		public Obelisk[] Obelisks = new Obelisk[] { new Obelisk() };
-        public ModData(Obelisk[] obelisks)
+		public Totem[] Totems = new Totem[] { new Totem() };
+        public ModData(Obelisk[] obelisks, Totem[] totems)
         {
-			Obelisks = obelisks;
+			if (obelisks != null)
+			{
+				Obelisks = obelisks;
+			}
+			else
+			{
+				Obelisks = new Obelisk[] { new Obelisk() };
+			}
+
+			if (totems != null)
+			{
+				Totems = totems;
+			}
+			else
+            {
+				Totems = new Totem[] { new Totem() };
+            }
         }
+	}
+	public class Totem
+    {
+		public string Name { get; set; }
+		public string WhereToWarp { get; set; }
+		public int ToX { get; set; }
+		public int ToY { get; set; }
+		public bool PersistItem { get; set; }
+		public Totem()
+		{
+			Name = "???";
+			WhereToWarp = "???";
+			ToX = 0;
+			ToY = 0;
+			PersistItem = false;
+		}
 	}
 	public class Obelisk
     {
