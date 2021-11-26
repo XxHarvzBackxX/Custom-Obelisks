@@ -1,0 +1,8 @@
+C:\Users\harve\source\repos\Custom Farm Buildings\Custom Farm Buildings\bin\Debug\net452\Custom Obelisks.dll
+C:\Users\harve\source\repos\Custom Farm Buildings\Custom Farm Buildings\bin\Debug\net452\Custom Obelisks.pdb
+C:\Users\harve\source\repos\Custom Farm Buildings\Custom Farm Buildings\obj\Debug\net452\Custom Obelisks.csproj.AssemblyReference.cache
+C:\Users\harve\source\repos\Custom Farm Buildings\Custom Farm Buildings\obj\Debug\net452\Custom Obelisks.AssemblyInfoInputs.cache
+C:\Users\harve\source\repos\Custom Farm Buildings\Custom Farm Buildings\obj\Debug\net452\Custom Obelisks.AssemblyInfo.cs
+C:\Users\harve\source\repos\Custom Farm Buildings\Custom Farm Buildings\obj\Debug\net452\Custom Obelisks.csproj.CoreCompileInputs.cache
+C:\Users\harve\source\repos\Custom Farm Buildings\Custom Farm Buildings\obj\Debug\net452\Custom Obelisks.dll
+C:\Users\harve\source\repos\Custom Farm Buildings\Custom Farm Buildings\obj\Debug\net452\Custom Obelisks.pdb
